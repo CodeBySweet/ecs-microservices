@@ -63,9 +63,13 @@ jobs:
       - name: Read image URIs into env vars
         id: images
         run: |
-          echo "auth_image=$(cat image-auth.txt)" >> $GITHUB_ENV
-          echo "product_image=$(cat image-product.txt)" >> $GITHUB_ENV
-          echo "user_image=$(cat image-user.txt)" >> $GITHUB_ENV
+          while IFS= read -r line; do
+            case "$line" in
+              *auth*) echo "auth_image=$line" >> $GITHUB_ENV ;;
+              *product*) echo "product_image=$line" >> $GITHUB_ENV ;;
+              *user*) echo "user_image=$line" >> $GITHUB_ENV ;;
+            esac
+          done < image-uris.txt
 
       - name: Terraform Apply
         if: github.event.inputs.action == 'deploy'
