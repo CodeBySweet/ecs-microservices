@@ -214,6 +214,10 @@ resource "aws_ecs_service" "auth" {
     assign_public_ip = false
   }
 
+  service_registries {
+    registry_arn = aws_service_discovery_service.auth.arn
+  }
+
   depends_on = [aws_lb_target_group.auth, aws_lb_listener_rule.auth]
 }
 
@@ -236,6 +240,11 @@ resource "aws_ecs_service" "product" {
     assign_public_ip = false
   }
 
+  service_registries {
+    registry_arn = aws_service_discovery_service.product.arn
+  }
+
+
   depends_on = [aws_lb_target_group.product, aws_lb_listener_rule.product]
 }
 
@@ -256,6 +265,10 @@ resource "aws_ecs_service" "user" {
     subnets         = var.subnet_ids
     security_groups = [aws_security_group.ecs_service_sg.id]
     assign_public_ip = false
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.user.arn
   }
 
   depends_on = [aws_lb_target_group.user, aws_lb_listener_rule.user]
@@ -307,5 +320,63 @@ resource "aws_lb_listener_rule" "user" {
     path_pattern {
       values = ["/user*"]
     }
+  }
+}
+
+resource "aws_service_discovery_service" "auth" {
+  name = "auth"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.my_namespace.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+}
+
+resource "aws_service_discovery_service" "product" {
+  name = "product"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.my_namespace.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+}
+
+
+resource "aws_service_discovery_service" "user" {
+  name = "user"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.my_namespace.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
   }
 }
