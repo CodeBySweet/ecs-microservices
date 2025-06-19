@@ -72,6 +72,99 @@ resource "aws_lb_target_group" "user" {
   }
 }
 
+resource "aws_ecs_task_definition" "auth" {
+  family                   = "${var.cluster_name}-auth"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = var.cpu
+  memory                   = var.memory
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "auth"
+      image     = var.image_auth
+      portMappings = [
+        {
+          containerPort = 3000
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "auth"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_task_definition" "product" {
+  family                   = "${var.cluster_name}-product"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = var.cpu
+  memory                   = var.memory
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "product"
+      image     = var.image_product
+      portMappings = [
+        {
+          containerPort = 3001
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "product"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_task_definition" "user" {
+  family                   = "${var.cluster_name}-user"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = var.cpu
+  memory                   = var.memory
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "user"
+      image     = var.image_user
+      portMappings = [
+        {
+          containerPort = 3002
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "user"
+        }
+      }
+    }
+  ])
+}
+
 # ECS Services
 resource "aws_ecs_service" "auth" {
   name            = "${var.cluster_name}-auth"
