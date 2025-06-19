@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return jsonify({"message": "User Service running!"})
+    return jsonify({"message": "Product Service running!"})
 
 @app.route('/product/products')
 def get_products(user_id):
