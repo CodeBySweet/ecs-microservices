@@ -1,0 +1,101 @@
+name: Build, Scan, Push to ECR
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: "us-east-1"
+  ECR_REPO_NAME: "my-app-repo"
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [auth, product, user]
+
+    outputs:
+      sha: ${{ steps.sha.outputs.short }}
+      image: ${{ steps.build.outputs.image }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.OIDC_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Login to Amazon ECR
+        id: login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker Image
+        id: build
+        run: |
+          IMAGE="${{ steps.login.outputs.registry }}/${{ env.ECR_REPO_NAME }}:${{ matrix.service }}-${{ steps.sha.outputs.short }}"
+          docker build -t $IMAGE ./app/${{ matrix.service }}
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+        env:
+          DOCKER_BUILDKIT: 1
+
+  scan-image:
+    needs: build-image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [auth, product, user]
+
+    steps:
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.49.1
+
+      - name: Trivy scan (critical only)
+        run: |
+          trivy image \
+            --severity CRITICAL \
+            --ignore-unfixed \
+            --exit-code 1 \
+            --scanners vuln \
+            --timeout 5m \
+            ${{ needs.build-image.outputs.image }}
+
+  push-image:
+    needs: [build-image, scan-image]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [auth, product, user]
+
+    outputs:
+      image_uri: ${{ steps.push.outputs.image_uri }}
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.OIDC_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push Docker image
+        id: push
+        run: |
+          IMAGE=${{ needs.build-image.outputs.image }}
+          docker push $IMAGE
+          echo "image_uri=$IMAGE" >> $GITHUB_OUTPUT

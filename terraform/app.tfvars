@@ -1,0 +1,17 @@
+ecs_service_name           = "my-app-service"
+cluster_id                 = "arn:aws:ecs:us-east-1:626635421987:cluster/my-app-cluster"
+subnet_ids                 = ["subnet-088299252cc784d7b", "subnet-02abbb998cab124e4", "subnet-0d2588e74efa1e717"]
+security_group_ids         = ["sg-093606f2095cef16e"]
+execution_role_arn         = "arn:aws:iam::626635421987:role/ecsTaskExecutionRole"
+task_role_arn              = "arn:aws:iam::626635421987:role/ecsTaskExecutionRole"
+container_port             = 5000
+container_definitions_name = "my-app"
+task_family                = "my-app-service"
+desired_count              = 1
+main_vpc_id                = "vpc-047a90672a7b63ceb"
+alb_tg                     = "arn:aws:elasticloadbalancing:us-east-1:626635421987:loadbalancer/app/my-app-alb/cb962792911b751f"
+region                     = "us-east-1"
+cluster_name               = "my-app-cluster"
+memory                     = 512
+cpu                        = 512
+alb_sg_name                = "my-app-alb-sg"
