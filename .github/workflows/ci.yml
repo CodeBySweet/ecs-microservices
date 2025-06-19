@@ -18,6 +18,8 @@ jobs:
     strategy:
       matrix:
         service: [auth, product, user]
+    outputs:
+      artifact-name: image-uris
 
     steps:
       - name: Checkout code
@@ -43,6 +45,7 @@ jobs:
           IMAGE="${{ steps.login.outputs.registry }}/${{ env.ECR_REPO_NAME }}:${{ matrix.service }}-${{ steps.sha.outputs.short }}"
           docker build -t $IMAGE ./app/${{ matrix.service }}
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "$IMAGE" > image-${{ matrix.service }}.txt
         env:
           DOCKER_BUILDKIT: 1
 
@@ -63,3 +66,12 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ steps.build.outputs.image }}
+
+      - name: Upload Image URI Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-uris
+          path: |
+            image-auth.txt
+            image-product.txt
+            image-user.txt

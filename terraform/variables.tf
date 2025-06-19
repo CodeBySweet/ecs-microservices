@@ -18,7 +18,17 @@ variable "security_group_ids" {
   description = "List of security group ID"
 }
 
-variable "image" {
+variable "image_auth" {
+  type        = string
+  description = "Docker image URI"
+}
+
+variable "image_product" {
+  type        = string
+  description = "Docker image URI"
+}
+
+variable "image_user" {
   type        = string
   description = "Docker image URI"
 }

@@ -55,10 +55,25 @@ jobs:
       - name: Terraform Init
         run: terraform init -reconfigure
 
+      - name: Download image URI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: image-uris
+
+      - name: Read image URIs into env vars
+        id: images
+        run: |
+          echo "auth_image=$(cat image-auth.txt)" >> $GITHUB_ENV
+          echo "product_image=$(cat image-product.txt)" >> $GITHUB_ENV
+          echo "user_image=$(cat image-user.txt)" >> $GITHUB_ENV
+
       - name: Terraform Apply
         if: github.event.inputs.action == 'deploy'
         run: |
           terraform apply \
+            -var="image_auth=${{ env.auth_image }}" \
+            -var="image_product=${{ env.product_image }}" \
+            -var="image_user=${{ env.user_image }}" \
             -var-file="app.tfvars" \
             -auto-approve
 
@@ -66,5 +81,8 @@ jobs:
         if: github.event.inputs.action == 'destroy'
         run: |
           terraform destroy \
+            -var="image_auth=${{ env.auth_image }}" \
+            -var="image_product=${{ env.product_image }}" \
+            -var="image_user=${{ env.user_image }}" \
             -var-file="app.tfvars" \
             -auto-approve
