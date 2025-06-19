@@ -76,19 +76,26 @@ jobs:
           name: image-uri-${{ matrix.service }}
           path: image-${{ matrix.service }}.txt
 
-  merge-artifacts:
-    runs-on: ubuntu-latest
-    needs: build-scan-push
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: image-uri-*
-          path: ./artifacts
+merge-artifacts:
+  runs-on: ubuntu-latest
+  needs: build-scan-push
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.OIDC_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - name: Combine image URIs
-        run: cat ./artifacts/image-uri-*/image-*.txt > image-uris.txt
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: image-uri-*
+        path: ./artifacts
 
-      - name: Upload image-uris.txt to S3
-        run: aws s3 cp image-uris.txt s3://my-shared-artifacts-bucket/image-uris.txt
+    - name: Combine image URIs
+      run: cat ./artifacts/image-uri-*/image-*.txt > image-uris.txt
+
+    - name: Upload image-uris.txt to S3
+      run: aws s3 cp image-uris.txt s3://my-shared-artifacts-bucket/image-uris.txt
+
 
