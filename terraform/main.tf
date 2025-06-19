@@ -6,6 +6,11 @@ data "aws_lb" "app" {
   name = var.alb_name
 }
 
+data "aws_lb_listener" "http" {
+  load_balancer_arn = data.aws_lb.app.arn
+  port              = 80
+}
+
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/${var.cluster_name}"
   retention_in_days = 7
@@ -238,7 +243,7 @@ resource "aws_ecs_service" "user" {
 
 
 resource "aws_lb_listener_rule" "auth" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = data.aws_lb_listener.http.arn
   priority     = 100
 
   action {
@@ -254,7 +259,7 @@ resource "aws_lb_listener_rule" "auth" {
 }
 
 resource "aws_lb_listener_rule" "product" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = data.aws_lb_listener.http.arn
   priority     = 110
 
   action {
@@ -270,7 +275,7 @@ resource "aws_lb_listener_rule" "product" {
 }
 
 resource "aws_lb_listener_rule" "user" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = data.aws_lb_listener.http.arn
   priority     = 120
 
   action {
@@ -281,21 +286,6 @@ resource "aws_lb_listener_rule" "user" {
   condition {
     path_pattern {
       values = ["/user*"]
-    }
-  }
-}
-
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = data.aws_lb.app.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type = "fixed-response"
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "404 Not Found"
-      status_code  = "404"
     }
   }
 }
