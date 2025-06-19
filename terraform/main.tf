@@ -32,7 +32,7 @@ resource "aws_security_group" "ecs_service_sg" {
 # Target Groups
 resource "aws_lb_target_group" "auth" {
   name        = "${var.cluster_name}-auth-tg"
-  port        = 3000
+  port        = 3003
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = var.main_vpc_id
@@ -96,7 +96,7 @@ resource "aws_ecs_task_definition" "auth" {
       image     = var.image_auth
       portMappings = [
         {
-          containerPort = 3000
+          containerPort = 3003
           protocol      = "tcp"
         }
       ]
@@ -185,7 +185,7 @@ resource "aws_ecs_service" "auth" {
   load_balancer {
     target_group_arn = aws_lb_target_group.auth.arn
     container_name   = "auth"
-    container_port   = 3000
+    container_port   = 3003
   }
 
   network_configuration {
