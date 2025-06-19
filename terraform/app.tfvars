@@ -12,6 +12,6 @@ main_vpc_id                = "vpc-047a90672a7b63ceb"
 alb_tg                     = "arn:aws:elasticloadbalancing:us-east-1:626635421987:loadbalancer/app/my-app-alb/cb962792911b751f"
 region                     = "us-east-1"
 cluster_name               = "my-app-cluster"
-memory                     = 512
+memory                     = 1024
 cpu                        = 512
 alb_sg_name                = "my-app-alb-sg"
