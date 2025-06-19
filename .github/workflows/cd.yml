@@ -18,8 +18,13 @@ permissions:
   actions: read
 
 jobs:
+  call-ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
   deploy:
     runs-on: ubuntu-latest
+    needs: call-ci
     defaults:
       run:
         working-directory: terraform
@@ -55,10 +60,8 @@ jobs:
       - name: Terraform Init
         run: terraform init -reconfigure
 
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image-uris
+      - name: Download image URIs from S3
+        run: aws s3 cp s3://my-shared-artifacts-bucket/image-uris.txt image-uris.txt
 
       - name: Read image URIs into env vars
         id: images

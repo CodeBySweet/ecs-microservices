@@ -1,8 +1,11 @@
-name: Build, Scan, Push to ECR
+name: ci
 
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    outputs:
+      short_sha:
+        description: "Short SHA"
+        value: ${{ jobs.build-scan-push.outputs.sha }}
 
 permissions:
   id-token: write
@@ -86,8 +89,6 @@ jobs:
       - name: Combine image URIs
         run: cat ./artifacts/image-uri-*/image-*.txt > image-uris.txt
 
-      - name: Upload combined artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-uris
-          path: image-uris.txt
+      - name: Upload image-uris.txt to S3
+        run: aws s3 cp image-uris.txt s3://my-shared-artifacts-bucket/image-uris.txt
+
