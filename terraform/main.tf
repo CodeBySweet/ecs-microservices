@@ -2,6 +2,10 @@ data "aws_security_group" "alb_sg" {
   name = var.alb_sg_name
 }
 
+data "aws_lb" "app" {
+  name = var.alb_name
+}
+
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/${var.cluster_name}"
   retention_in_days = 7
@@ -185,7 +189,7 @@ resource "aws_ecs_service" "auth" {
     assign_public_ip = false
   }
 
-  depends_on = [aws_lb_target_group.auth]
+  depends_on = [aws_lb_target_group.auth, aws_lb_listener_rule.auth]
 }
 
 resource "aws_ecs_service" "product" {
@@ -207,7 +211,7 @@ resource "aws_ecs_service" "product" {
     assign_public_ip = false
   }
 
-  depends_on = [aws_lb_target_group.product]
+  depends_on = [aws_lb_target_group.product, aws_lb_listener_rule.product]
 }
 
 resource "aws_ecs_service" "user" {
@@ -229,5 +233,69 @@ resource "aws_ecs_service" "user" {
     assign_public_ip = false
   }
 
-  depends_on = [aws_lb_target_group.user]
+  depends_on = [aws_lb_target_group.user, aws_lb_listener_rule.user]
+}
+
+
+resource "aws_lb_listener_rule" "auth" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.auth.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/auth*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "product" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 110
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.product.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/product*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "user" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 120
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.user.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/user*"]
+    }
+  }
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = data.aws_lb.app.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "404 Not Found"
+      status_code  = "404"
+    }
+  }
 }

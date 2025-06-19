@@ -15,3 +15,4 @@ cluster_name               = "my-app-cluster"
 memory                     = 1024
 cpu                        = 512
 alb_sg_name                = "my-app-alb-sg"
+alb_name                   = "my-app-alb"

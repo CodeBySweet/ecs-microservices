@@ -93,3 +93,7 @@ variable "main_vpc_id" {
 variable "alb_sg_name" {
   type = string
 }
+
+variable "alb_name" {
+  type = string
+}
