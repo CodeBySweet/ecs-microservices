@@ -22,11 +22,21 @@ resource "aws_security_group" "ecs_service_sg" {
   vpc_id      = var.main_vpc_id
 
   egress {
-    from_port   = 0
-    to_port     = 0
+    from_port   = 3000
+    to_port     = 3010
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_security_group_rule" "allow_alb_to_ecs_range" {
+  type                     = "ingress"
+  from_port                = 3001
+  to_port                  = 3003
+  protocol                 = "tcp"
+  source_security_group_id = data.aws_security_group.alb_sg.id
+  security_group_id        = aws_security_group.ecs_service_sg.id
+  description              = "Allow ALB to access ECS services"
 }
 
 # Target Groups
