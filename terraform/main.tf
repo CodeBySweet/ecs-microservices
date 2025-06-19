@@ -11,8 +11,9 @@ data "aws_lb_listener" "http" {
   port              = 80
 }
 
-data "aws_service_discovery_private_dns_namespace" "my_namespace" {
+data "aws_service_discovery_dns_namespace" "my_namespace" {
   name = "my-namespace.local"
+  type = "DNS_PRIVATE"
 }
 
 resource "aws_cloudwatch_log_group" "ecs_logs" {
@@ -331,7 +332,7 @@ resource "aws_service_discovery_service" "auth" {
   name = "auth"
 
   dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.my_namespace.id
+    namespace_id = data.aws_service_discovery_dns_namespace.my_namespace.id
 
     dns_records {
       ttl  = 10
@@ -350,7 +351,7 @@ resource "aws_service_discovery_service" "product" {
   name = "product"
 
   dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.my_namespace.id
+    namespace_id = data.aws_service_discovery_dns_namespace.my_namespace.id
 
     dns_records {
       ttl  = 10
@@ -370,8 +371,8 @@ resource "aws_service_discovery_service" "user" {
   name = "user"
 
   dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.my_namespace.id
-
+    namespace_id = data.aws_service_discovery_dns_namespace.my_namespace.id
+    
     dns_records {
       ttl  = 10
       type = "A"
