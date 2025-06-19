@@ -51,10 +51,10 @@ variable "task_role_arn" {
   description = "ECS task role arn"
 }
 
-variable "container_port" {
-  type        = number
-  description = "Task Definition Ports"
-}
+# variable "container_port" {
+#   type        = number
+#   description = "Task Definition Ports"
+# }
 
 variable "container_definitions_name" {
   type        = string
