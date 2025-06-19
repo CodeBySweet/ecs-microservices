@@ -13,15 +13,11 @@ env:
   ECR_REPO_NAME: "my-app-repo"
 
 jobs:
-  build-and-scan:
+  build-scan-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         service: [auth, product, user]
-
-    outputs:
-      sha: ${{ steps.sha.outputs.short }}
-      image_tag: ${{ steps.build.outputs.image_tag }}
 
     steps:
       - name: Checkout code
@@ -46,7 +42,7 @@ jobs:
         run: |
           IMAGE="${{ steps.login.outputs.registry }}/${{ env.ECR_REPO_NAME }}:${{ matrix.service }}-${{ steps.sha.outputs.short }}"
           docker build -t $IMAGE ./app/${{ matrix.service }}
-          echo "image_tag=$IMAGE" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
         env:
           DOCKER_BUILDKIT: 1
 
@@ -62,26 +58,8 @@ jobs:
             --exit-code 1 \
             --scanners vuln \
             --timeout 5m \
-            ${{ steps.build.outputs.image_tag }}
-
-  push-image:
-    needs: build-and-scan
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [auth, product, user]
-
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.OIDC_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login
-        uses: aws-actions/amazon-ecr-login@v2
+            ${{ steps.build.outputs.image }}
 
       - name: Push Docker image
         run: |
-          docker push ${{ needs.build-and-scan.outputs.image_tag }}
+          docker push ${{ steps.build.outputs.image }}
