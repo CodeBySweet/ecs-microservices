@@ -7,8 +7,12 @@ def home():
     return jsonify({"message": "Product Service running!"})
 
 @app.route('/product/products')
-def get_products(user_id):
-    return jsonify({"id": user_id, "name": "John Doe"})
+def get_products():
+    return jsonify([
+        {"id": 1, "name": "Laptop"},
+        {"id": 2, "name": "Smartphone"},
+        {"id": 3, "name": "Headphones"}
+    ])
 
 @app.route('/product/health')
 def health():
