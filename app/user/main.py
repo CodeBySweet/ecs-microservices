@@ -6,14 +6,14 @@ app = Flask(__name__)
 def home():
     return jsonify({"message": "Product Service running!"})
 
-@app.route('/products')
+@app.route('/user/products')
 def list_products():
     return jsonify([
         {"id": 1, "name": "Laptop"},
         {"id": 2, "name": "Headphones"}
     ])
 
-@app.route('/health')
+@app.route('/user/health')
 def health():
     return "ok", 200
 

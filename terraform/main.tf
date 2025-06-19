@@ -39,6 +39,16 @@ resource "aws_security_group_rule" "allow_alb_to_ecs_range" {
   description              = "Allow ALB to access ECS services"
 }
 
+resource "aws_security_group_rule" "allow_ecs_to_ecs" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.ecs_service_sg.id
+  security_group_id        = aws_security_group.ecs_service_sg.id
+  description              = "Allow ECS services to communicate with each other"
+}
+
 # Target Groups
 resource "aws_lb_target_group" "auth" {
   name        = "${var.cluster_name}-auth-tg"
@@ -48,7 +58,7 @@ resource "aws_lb_target_group" "auth" {
   vpc_id      = var.main_vpc_id
 
   health_check {
-    path                = "/health"
+    path                = "/auth/health"
     matcher             = "200-399"
     interval            = 30
     timeout             = 5
@@ -65,7 +75,7 @@ resource "aws_lb_target_group" "product" {
   vpc_id      = var.main_vpc_id
 
   health_check {
-    path                = "/health"
+    path                = "/product/health"
     matcher             = "200-399"
     interval            = 30
     timeout             = 5
@@ -82,7 +92,7 @@ resource "aws_lb_target_group" "user" {
   vpc_id      = var.main_vpc_id
 
   health_check {
-    path                = "/health"
+    path                = "/user/health"
     matcher             = "200-399"
     interval            = 30
     timeout             = 5
