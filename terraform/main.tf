@@ -22,8 +22,8 @@ resource "aws_security_group" "ecs_service_sg" {
   vpc_id      = var.main_vpc_id
 
   egress {
-    from_port   = 3000
-    to_port     = 3010
+    from_port   = 0
+    to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
