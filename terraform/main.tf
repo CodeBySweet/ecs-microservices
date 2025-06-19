@@ -11,6 +11,10 @@ data "aws_lb_listener" "http" {
   port              = 80
 }
 
+data "aws_service_discovery_private_dns_namespace" "my_namespace" {
+  name = "my-namespace.local"
+}
+
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/${var.cluster_name}"
   retention_in_days = 7
