@@ -42,10 +42,6 @@ TEMPLATE = """
 def home():
     return render_template_string(TEMPLATE)
 
-@app.route('/')
-def home():
-    return render_template_string(TEMPLATE)
-
 @app.route('/product/products')
 def get_products():
     return jsonify([
