@@ -20,3 +20,15 @@ def health():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=3001)
+    
+@app.route('/product/internal-test')
+def product_internal_test():
+    try:
+        auth_health = requests.get("http://auth.my-namespace.local:3003/auth/health").text
+        user_resp = requests.get("http://user.my-namespace.local:3002/user/products").json()
+        return jsonify({
+            "auth_status": auth_health,
+            "user_data": user_resp
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

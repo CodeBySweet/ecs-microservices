@@ -297,7 +297,7 @@ resource "aws_lb_listener_rule" "auth" {
 
   condition {
     path_pattern {
-      values = ["/auth*", "/login"]
+      values = ["/auth*", "/login", "/auth/internal-test"]
     }
   }
 }
@@ -313,7 +313,7 @@ resource "aws_lb_listener_rule" "product" {
 
   condition {
     path_pattern {
-      values = ["/product*"]
+      values = ["/product*", "/product/internal-test"]
     }
   }
 }
@@ -329,7 +329,7 @@ resource "aws_lb_listener_rule" "user" {
 
   condition {
     path_pattern {
-      values = ["/user*"]
+      values = ["/user*", "/user/internal-test"]
     }
   }
 }
