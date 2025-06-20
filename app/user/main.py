@@ -9,14 +9,14 @@ TEMPLATE = """
 <head>
     <title>User Service</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 2em; background: #f5f5f5; }
-        h1 { color: #2a2a2a; }
+        body { font-family: Arial, sans-serif; padding: 2em; background: #fff9c4; }
+        h1 { color: #f9a825; }
         button { padding: 10px 15px; margin: 8px; font-size: 1rem; }
         pre { background: #eee; padding: 1em; white-space: pre-wrap; }
     </style>
 </head>
 <body>
-    <h1>User Service</h1>
+    <h1>Welcome to the User Service</h1>
     <button onclick="window.location.href='/user/products'">View User Products</button>
     <button onclick="fetchTest()">Run Internal Test</button>
     <pre id="output">Click "Run Internal Test" to fetch data from Auth and Product services.</pre>
@@ -44,10 +44,13 @@ def home():
 
 @app.route('/user/products')
 def get_products():
-    return jsonify([
-        {"id": 1, "name": "Laptop"},
-        {"id": 2, "name": "Headphones"}
-    ])
+    return jsonify({
+        "message": "This is the User Service showing user-associated products",
+        "products": [
+            {"id": 1, "name": "Laptop"},
+            {"id": 2, "name": "Headphones"}
+        ]
+    })
 
 @app.route('/user/health')
 def health():

@@ -9,14 +9,14 @@ TEMPLATE = """
 <head>
     <title>Product Service</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 2em; background: #f5f5f5; }
-        h1 { color: #2a2a2a; }
+        body { font-family: Arial, sans-serif; padding: 2em; background: #e8f5e9; }
+        h1 { color: #388e3c; }
         button { padding: 10px 15px; margin: 8px; font-size: 1rem; }
         pre { background: #eee; padding: 1em; white-space: pre-wrap; }
     </style>
 </head>
 <body>
-    <h1>Product Service</h1>
+    <h1>Welcome to the Product Service</h1>
     <button onclick="window.location.href='/product/products'">View Products</button>
     <button onclick="fetchTest()">Run Internal Test</button>
     <pre id="output">Click "Run Internal Test" to fetch data from Auth and User services.</pre>
@@ -44,11 +44,14 @@ def home():
 
 @app.route('/product/products')
 def get_products():
-    return jsonify([
-        {"id": 1, "name": "Laptop"},
-        {"id": 2, "name": "Smartphone"},
-        {"id": 3, "name": "Headphones"}
-    ])
+    return jsonify({
+        "message": "Here is a list of available products",
+        "products": [
+            {"id": 1, "name": "Laptop"},
+            {"id": 2, "name": "Smartphone"},
+            {"id": 3, "name": "Headphones"}
+        ]
+    })
 
 @app.route('/product/health')
 def health():
