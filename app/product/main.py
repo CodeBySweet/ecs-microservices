@@ -38,6 +38,11 @@ TEMPLATE = """
 """
 
 @app.route('/')
+@app.route('/product')
+def home():
+    return render_template_string(TEMPLATE)
+
+@app.route('/')
 def home():
     return render_template_string(TEMPLATE)
 
