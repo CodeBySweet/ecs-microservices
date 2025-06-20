@@ -87,9 +87,9 @@ jobs:
           role-to-assume: ${{ secrets.OIDC_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get short SHA again
+      - name: Pass SHA from previous job
         id: sha_out
-        run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "short=${{ needs.build-scan-push.outputs.sha }}" >> $GITHUB_OUTPUT
 
       - name: Download image URIs from S3
         run: |
