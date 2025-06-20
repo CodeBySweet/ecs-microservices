@@ -1,18 +1,48 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template_string
 import requests
 
 app = Flask(__name__)
 
+TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Service</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; }
+        h1 { color: #333; }
+        button { padding: 10px 20px; margin: 5px; font-size: 1rem; }
+        pre { background: #eee; padding: 1em; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Auth Service</h1>
+    <p><strong>Status:</strong> Auth Service running!</p>
+    
+    <button onclick="window.location.href='/login'">Login (GET Token)</button>
+    <button onclick="fetchTest()">Run Internal Test</button>
+    
+    <pre id="output">Click "Run Internal Test" to fetch data from Product and User services.</pre>
+    
+    <script>
+    function fetchTest() {
+        fetch('/auth/internal-test')
+            .then(resp => resp.json())
+            .then(data => {
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => {
+                document.getElementById('output').textContent = 'Error: ' + err;
+            });
+    }
+    </script>
+</body>
+</html>
+"""
+
 @app.route('/')
 def home():
-    return jsonify({
-        "message": "Auth Service running!",
-        "routes": {
-            "Login": "/login",
-            "Health Check": "/auth/health",
-            "Internal Test": "/auth/internal-test"
-        }
-    })
+    return render_template_string(TEMPLATE)
 
 @app.route('/auth/health')
 def health():
