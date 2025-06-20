@@ -3,36 +3,32 @@ import requests
 
 app = Flask(__name__)
 
+users = [
+    {"id": 1, "name": "Alice"},
+    {"id": 2, "name": "Bob"}
+]
+
 TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>User Service</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 2em; background: #fff9c4; }
-        h1 { color: #f9a825; }
-        button { padding: 10px 15px; margin: 8px; font-size: 1rem; }
-        pre { background: #eee; padding: 1em; white-space: pre-wrap; }
+        body { font-family: Arial, sans-serif; padding: 2em; background: #f5f5f5; font-size: 1.2rem; }
+        h1 { color: #2a2a2a; }
+        button { padding: 12px 24px; margin: 8px; font-size: 1rem; cursor: pointer; }
+        table, th, td { border: 1px solid #aaa; border-collapse: collapse; padding: 8px; }
     </style>
 </head>
 <body>
-    <h1>Welcome to the User Service</h1>
-    <button onclick="window.location.href='/user/products'">View User Products</button>
-    <button onclick="fetchTest()">Run Internal Test</button>
-    <pre id="output">Click "Run Internal Test" to fetch data from Auth and Product services.</pre>
-
-    <script>
-    function fetchTest() {
-        fetch('/user/internal-test')
-            .then(resp => resp.json())
-            .then(data => {
-                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-            })
-            .catch(err => {
-                document.getElementById('output').textContent = 'Error: ' + err;
-            });
-    }
-    </script>
+    <h1>User Service</h1>
+    <table>
+        <tr><th>ID</th><th>Name</th></tr>
+        {% for u in users %}<tr><td>{{ u.id }}</td><td>{{ u.name }}</td></tr>{% endfor %}
+    </table>
+    <br>
+    <button onclick="window.location.href='http://auth.my-namespace.local:3003/auth'">Go to Auth</button>
+    <button onclick="window.location.href='http://product.my-namespace.local:3001/product'">Go to Product</button>
 </body>
 </html>
 """
@@ -40,34 +36,15 @@ TEMPLATE = """
 @app.route('/')
 @app.route('/user')
 def home():
-    return render_template_string(TEMPLATE)
+    return render_template_string(TEMPLATE, users=users)
 
 @app.route('/user/products')
 def get_products():
-    return jsonify({
-        "message": "This is the User Service showing user-associated products",
-        "products": [
-            {"id": 1, "name": "Laptop"},
-            {"id": 2, "name": "Headphones"}
-        ]
-    })
+    return jsonify(users)
 
 @app.route('/user/health')
 def health():
     return "ok", 200
-
-@app.route('/user/internal-test')
-def user_internal_test():
-    try:
-        auth_health = requests.get("http://auth.my-namespace.local:3003/auth/health", timeout=3).text
-        product_resp = requests.get("http://product.my-namespace.local:3001/product/products", timeout=3).json()
-        return jsonify({
-            "status": "success",
-            "auth_status": auth_health,
-            "product_data": product_resp
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=3002)

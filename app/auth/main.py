@@ -3,47 +3,45 @@ import requests
 
 app = Flask(__name__)
 
+TOKENS = [
+    {"user": "alice@example.com", "token": "abc123xyz"},
+    {"user": "bob@example.com", "token": "def456uvw"}
+]
+
 TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Auth Service</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 2em; background: #e0f7fa; }
-        h1 { color: #00796b; }
-        button { padding: 10px 20px; margin: 5px; font-size: 1rem; }
-        pre { background: #eee; padding: 1em; overflow-x: auto; }
+        body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; font-size: 1.2rem; }
+        h1 { color: #333; }
+        button { padding: 12px 24px; margin: 8px; font-size: 1rem; cursor: pointer; }
+        table, th, td { border: 1px solid #aaa; border-collapse: collapse; padding: 8px; }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Auth/Login Service</h1>
-    <p><strong>Status:</strong> Auth Service is running!</p>
+    <h1>Auth Service</h1>
+    <p><strong>Status:</strong> Auth Service running!</p>
 
-    <button onclick="window.location.href='/login'">Login (GET Token)</button>
-    <button onclick="fetchTest()">Run Internal Test</button>
-
-    <pre id="output">Click "Run Internal Test" to fetch data from Product and User services.</pre>
-
-    <script>
-    function fetchTest() {
-        fetch('/auth/internal-test')
-            .then(resp => resp.json())
-            .then(data => {
-                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-            })
-            .catch(err => {
-                document.getElementById('output').textContent = 'Error: ' + err;
-            });
-    }
-    </script>
+    <table>
+        <tr><th>User</th><th>Token</th></tr>
+        {% for t in tokens %}<tr><td>{{ t.user }}</td><td>{{ t.token }}</td></tr>{% endfor %}
+    </table>
+    <br>
+    <button onclick="window.location.href='http://product.my-namespace.local:3001/product'">Go to Product</button>
+    <button onclick="window.location.href='http://user.my-namespace.local:3002/user'">Go to User</button>
 </body>
 </html>
 """
 
-@app.route('/')
 @app.route('/auth')
 def auth_root():
-    return render_template_string(TEMPLATE)
+    return render_template_string(TEMPLATE, tokens=TOKENS)
+
+@app.route('/')
+def home():
+    return render_template_string(TEMPLATE, tokens=TOKENS)
 
 @app.route('/auth/health')
 def health():
@@ -51,20 +49,7 @@ def health():
 
 @app.route('/login')
 def login():
-    return jsonify({"message": "Welcome to the Login Page", "token": "dummy-jwt-token"})
-
-@app.route('/auth/internal-test')
-def auth_internal_test():
-    try:
-        product_resp = requests.get("http://product.my-namespace.local:3001/product/products", timeout=3).json()
-        user_resp = requests.get("http://user.my-namespace.local:3002/user/products", timeout=3).json()
-        return jsonify({
-            "status": "success",
-            "product_data": product_resp,
-            "user_data": user_resp
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    return jsonify({"token": "dummy-jwt-token"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3003)
