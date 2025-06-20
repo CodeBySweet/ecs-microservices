@@ -297,7 +297,7 @@ resource "aws_lb_listener_rule" "auth" {
 
   condition {
     path_pattern {
-      values = ["/auth*"]
+      values = ["/auth*", "/login"]
     }
   }
 }
