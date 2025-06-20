@@ -207,6 +207,8 @@ resource "aws_ecs_service" "auth" {
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 
+  enable_execute_command = true
+
   load_balancer {
     target_group_arn = aws_lb_target_group.auth.arn
     container_name   = "auth"
@@ -232,6 +234,8 @@ resource "aws_ecs_service" "product" {
   task_definition = aws_ecs_task_definition.product.arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
+
+  enable_execute_command = true
 
   load_balancer {
     target_group_arn = aws_lb_target_group.product.arn
@@ -259,6 +263,8 @@ resource "aws_ecs_service" "user" {
   task_definition = aws_ecs_task_definition.user.arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
+
+  enable_execute_command = true
 
   load_balancer {
     target_group_arn = aws_lb_target_group.user.arn
@@ -372,7 +378,7 @@ resource "aws_service_discovery_service" "user" {
 
   dns_config {
     namespace_id = data.aws_service_discovery_dns_namespace.my_namespace.id
-    
+
     dns_records {
       ttl  = 10
       type = "A"
