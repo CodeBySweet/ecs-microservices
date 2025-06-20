@@ -14,6 +14,7 @@ permissions:
 env:
   AWS_REGION: "us-east-1"
   ECR_REPO_NAME: "my-app-repo"
+  ARTIFACT_BUCKET: "my-shared-artifacts-bucket"
 
 jobs:
   build-scan-push:
@@ -41,13 +42,13 @@ jobs:
         id: login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker Image
+      - name: Build Docker image
         id: build
         run: |
           IMAGE="${{ steps.login.outputs.registry }}/${{ env.ECR_REPO_NAME }}:${{ matrix.service }}-${{ steps.sha.outputs.short }}"
           docker build -t $IMAGE ./app/${{ matrix.service }}
+          echo "$IMAGE" > image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
-          echo "$IMAGE" > image-${{ matrix.service }}.txt
         env:
           DOCKER_BUILDKIT: 1
 
@@ -69,11 +70,10 @@ jobs:
         run: |
           docker push ${{ steps.build.outputs.image }}
 
-      - name: Upload image URI for service
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-uri-${{ matrix.service }}
-          path: image-${{ matrix.service }}.txt
+      - name: Upload image URI to S3
+        run: |
+          aws s3 cp image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt \
+            s3://${{ env.ARTIFACT_BUCKET }}/image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt
 
   merge-artifacts:
     runs-on: ubuntu-latest
@@ -87,18 +87,21 @@ jobs:
           role-to-assume: ${{ secrets.OIDC_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: image-uri-*
-          path: ./artifacts
-
-      - name: Combine image URIs
-        run: cat ./artifacts/image-uri-*/image-*.txt > image-uris.txt
-
       - name: Get short SHA again
         id: sha_out
         run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Upload image-uris.txt to S3
-        run: aws s3 cp image-uris.txt s3://my-shared-artifacts-bucket/image-uris-${{ steps.sha_out.outputs.short }}.txt
+      - name: Download image URIs from S3
+        run: |
+          mkdir -p artifacts
+          for service in auth product user; do
+            aws s3 cp s3://${{ env.ARTIFACT_BUCKET }}/image-uri-$service-${{ steps.sha_out.outputs.short }}.txt \
+              ./artifacts/image-uri-$service.txt
+          done
+
+      - name: Combine image URIs
+        run: cat ./artifacts/image-uri-*.txt > image-uris.txt
+
+      - name: Upload combined image URIs to S3
+        run: |
+          aws s3 cp image-uris.txt s3://${{ env.ARTIFACT_BUCKET }}/image-uris-${{ steps.sha_out.outputs.short }}.txt
