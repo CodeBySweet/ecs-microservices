@@ -75,7 +75,7 @@ jobs:
           aws s3 cp image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt \
             s3://${{ env.ARTIFACT_BUCKET }}/image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt
 
-    merge-artifacts:
+  merge-artifacts:
     runs-on: ubuntu-latest
     needs: build-scan-push
     outputs:
