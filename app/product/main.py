@@ -13,12 +13,12 @@ products = [
 @app.route('/product')
 def home():
     try:
-        auth_data = requests.get("http://auth.my-namespace.local/login", timeout=3).json()
+        auth_data = requests.get("http://auth.my-namespace.local:3003/login", timeout=3).json()
     except Exception as e:
         auth_data = {"error": str(e)}
 
     try:
-        user_data = requests.get("http://user.my-namespace.local/user/products", timeout=3).json()
+        user_data = requests.get("http://user.my-namespace.local:3002/user/products", timeout=3).json()
     except Exception as e:
         user_data = [{"error": str(e)}]
 
