@@ -40,6 +40,10 @@ TEMPLATE = """
 </html>
 """
 
+@app.route('/auth')
+def auth_root():
+    return render_template_string(TEMPLATE)
+
 @app.route('/')
 def home():
     return render_template_string(TEMPLATE)
