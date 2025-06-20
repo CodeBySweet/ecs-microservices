@@ -29,8 +29,8 @@ TEMPLATE = """
         {% for t in tokens %}<tr><td>{{ t.user }}</td><td>{{ t.token }}</td></tr>{% endfor %}
     </table>
     <br>
-    <button onclick="window.location.href='http://product.my-namespace.local:3001/product'">Go to Product</button>
-    <button onclick="window.location.href='http://user.my-namespace.local:3002/user'">Go to User</button>
+    <button onclick="window.location.href='http://product.my-namespace.local/product'">Go to Product</button>
+    <button onclick="window.location.href='http://user.my-namespace.local/user'">Go to User</button>
 </body>
 </html>
 """

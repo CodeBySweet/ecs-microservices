@@ -28,8 +28,8 @@ TEMPLATE = """
         {% for p in products %}<tr><td>{{ p.id }}</td><td>{{ p.name }}</td></tr>{% endfor %}
     </table>
     <br>
-    <button onclick="window.location.href='http://auth.my-namespace.local:3003/auth'">Go to Auth</button>
-    <button onclick="window.location.href='http://user.my-namespace.local:3002/user'">Go to User</button>
+    <button onclick="window.location.href='http://auth.my-namespace.local/auth'">Go to Auth</button>
+    <button onclick="window.location.href='http://user.my-namespace.local/user'">Go to User</button>
 </body>
 </html>
 """

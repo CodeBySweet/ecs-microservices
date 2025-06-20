@@ -27,8 +27,8 @@ TEMPLATE = """
         {% for u in users %}<tr><td>{{ u.id }}</td><td>{{ u.name }}</td></tr>{% endfor %}
     </table>
     <br>
-    <button onclick="window.location.href='http://auth.my-namespace.local:3003/auth'">Go to Auth</button>
-    <button onclick="window.location.href='http://product.my-namespace.local:3001/product'">Go to Product</button>
+    <button onclick="window.location.href='http://auth.my-namespace.local/auth'">Go to Auth</button>
+    <button onclick="window.location.href='http://product.my-namespace.local/product'">Go to Product</button>
 </body>
 </html>
 """
