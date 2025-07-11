@@ -38,8 +38,8 @@ def auth_root():
         </table>
 
         <div class="nav-buttons">
-            <a href="http://product.my-namespace.local:3001/product" class="btn">➡️ Go to Product</a>
-            <a href="http://user.my-namespace.local:3002/user" class="btn">➡️ Go to User</a>
+            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/product" class="btn">➡️ Go to Product</a>
+            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/user" class="btn">➡️ Go to User</a>
         </div>
     </body>
     </html>

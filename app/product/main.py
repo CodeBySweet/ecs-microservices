@@ -39,8 +39,8 @@ def home():
         </table>
 
         <div class="nav-buttons">
-            <a href="http://auth.my-namespace.local:3003/auth" class="btn">➡️ Go to Auth</a>
-            <a href="http://user.my-namespace.local:3002/user" class="btn">➡️ Go to User</a>
+            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/auth" class="btn">➡️ Go to Auth</a>
+            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/user" class="btn">➡️ Go to User</a>
         </div>
     </body>
     </html>
