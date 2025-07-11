@@ -7,15 +7,15 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     services = {
-        "Auth Service": "http://auth.my-namespace.local:3003/auth",
-        "Product Service": "http://product.my-namespace.local:3001/product",
-        "User Service": "http://user.my-namespace.local:3002/user"
+        "Auth Service": "https://innovatespheres.org/auth",
+        "Product Service": "https://innovatespheres.org/product",
+        "User Service": "https://innovatespheres.org/user"
     }
 
     health_endpoints = {
-        "Auth Service": "http://auth.my-namespace.local:3003/auth/health",
-        "Product Service": "http://product.my-namespace.local:3001/product/health",
-        "User Service": "http://user.my-namespace.local:3002/user/health"
+        "Auth Service": "https://innovatespheres.org/auth/health",
+        "Product Service": "https://innovatespheres.org/product/health",
+        "User Service": "https://innovatespheres.org/user/health"
     }
 
     health = {}
