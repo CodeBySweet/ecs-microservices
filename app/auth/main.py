@@ -39,27 +39,29 @@ def auth_root():
         </table>
 
         <div class="nav-buttons">
-            <a href="/get-product" class="btn">➡️ Get Product Info</a>
-            <a href="/get-user" class="btn">➡️ Get User Info</a>
+            <a href="/get-user" class="btn">🔄 Fetch User Info</a>
+            <a href="/get-product" class="btn">🛍 Fetch Product Info</a>
         </div>
     </body>
     </html>
     """
     return render_template_string(TEMPLATE, tokens=TOKENS)
 
-@app.route('/get-product')
-def get_product():
-    try:
-        response = requests.get("http://product.my-namespace.local:3001/product", timeout=3)
-        return jsonify(response.json())
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route('/get-user')
 def get_user():
     try:
         response = requests.get("http://user.my-namespace.local:3002/user", timeout=3)
-        return jsonify(response.json())
+        user_data = response.json()
+        return jsonify({"message": "Fetched from User Service", "data": user_data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get-product')
+def get_product():
+    try:
+        response = requests.get("http://product.my-namespace.local:3001/product", timeout=3)
+        product_data = response.json()
+        return jsonify({"message": "Fetched from Product Service", "data": product_data})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

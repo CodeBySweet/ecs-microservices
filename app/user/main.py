@@ -62,9 +62,18 @@ def home():
     """
     return render_template_string(TEMPLATE, users=users, auth_status=auth_status, product_status=product_status)
 
-@app.route('/user/products')
+@app.route('/user')
 def get_users():
     return jsonify(users)
+
+@app.route('/user/preferences')
+def get_preferences():
+    preferences = {
+        1: {"theme": "dark", "language": "en"},
+        2: {"theme": "light", "language": "es"}
+    }
+    user_id = int(request.args.get("user_id", 1))
+    return jsonify(preferences.get(user_id, {}))
 
 @app.route('/user/health')
 def health():

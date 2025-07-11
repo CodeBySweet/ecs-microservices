@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, render_template_string, request
 import requests
 
 app = Flask(__name__)
@@ -11,16 +11,6 @@ products = [
 
 @app.route('/product')
 def home():
-    try:
-        auth_status = requests.get("http://auth.my-namespace.local:3003/auth/health", timeout=2).text
-    except Exception as e:
-        auth_status = f"Unavailable ({e})"
-
-    try:
-        user_status = requests.get("http://user.my-namespace.local:3002/user/health", timeout=2).text
-    except Exception as e:
-        user_status = f"Unavailable ({e})"
-
     TEMPLATE = """
     <!DOCTYPE html>
     <html>
@@ -35,37 +25,39 @@ def home():
             .nav-buttons { margin-top: 2em; }
             .btn { padding: 10px 16px; margin: 5px; border: none; background: #007acc; color: white; border-radius: 5px; text-decoration: none; font-weight: bold; }
             .btn:hover { background: #005f99; }
-            .status { font-size: 0.9rem; margin-left: 0.5em; color: green; }
-            .error { color: red; }
         </style>
     </head>
     <body>
         <h1>🛍️ Product Service</h1>
         <p><strong>Status:</strong> Product service is running independently.</p>
 
-        <h2>Product List</h2>
-        <table>
-            <tr><th>ID</th><th>Name</th></tr>
-            {% for p in products %}
-                <tr><td>{{ p.id }}</td><td>{{ p.name }}</td></tr>
-            {% endfor %}
-        </table>
-
         <div class="nav-buttons">
-            <a href="http://auth.my-namespace.local:3003/auth" class="btn">➡️ Go to Auth</a>
-            <span class="status {% if 'ok' not in auth_status %}error{% endif %}">{{ auth_status }}</span>
-
-            <a href="http://user.my-namespace.local:3002/user" class="btn">➡️ Go to User</a>
-            <span class="status {% if 'ok' not in user_status %}error{% endif %}">{{ user_status }}</span>
+            <a href="/fetch-with-auth" class="btn">🔐 Get Products with Token Validation</a>
         </div>
     </body>
     </html>
     """
-    return render_template_string(TEMPLATE, products=products, auth_status=auth_status, user_status=user_status)
+    return render_template_string(TEMPLATE)
 
-@app.route('/product/products')
-def get_products():
-    return jsonify(products)
+@app.route('/fetch-with-auth')
+def fetch_with_auth():
+    try:
+        # Simulate token validation by calling auth
+        auth_resp = requests.get("http://auth.my-namespace.local:3003/login", timeout=3)
+        token = auth_resp.json().get("token")
+
+        # Call user service to simulate user context
+        user_resp = requests.get("http://user.my-namespace.local:3002/user", timeout=3)
+        users = user_resp.json()
+
+        return jsonify({
+            "validated_token": token,
+            "products": products,
+            "user_context": users
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/product/health')
 def health():
