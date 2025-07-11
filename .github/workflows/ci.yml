@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth, product, user]
+        service: [main, auth, product, user]
     outputs:
       sha: ${{ steps.sha.outputs.short }}
     steps:
@@ -94,7 +94,7 @@ jobs:
       - name: Download image URIs from S3
         run: |
           mkdir -p artifacts
-          for service in auth product user; do
+          for service in main auth product user; do
             aws s3 cp s3://${{ env.ARTIFACT_BUCKET }}/image-uri-$service-${{ steps.sha_out.outputs.short }}.txt \
               ./artifacts/image-uri-$service.txt
           done

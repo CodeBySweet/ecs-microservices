@@ -69,6 +69,7 @@ jobs:
         run: |
           while IFS= read -r line; do
             case "$line" in
+              *main*) echo "main_image=$line" >> $GITHUB_ENV ;;
               *auth*) echo "auth_image=$line" >> $GITHUB_ENV ;;
               *product*) echo "product_image=$line" >> $GITHUB_ENV ;;
               *user*) echo "user_image=$line" >> $GITHUB_ENV ;;
@@ -79,6 +80,7 @@ jobs:
         if: github.event.inputs.action == 'deploy'
         run: |
           terraform apply \
+            -var="image_main=${{ env.main_image }}" \
             -var="image_auth=${{ env.auth_image }}" \
             -var="image_product=${{ env.product_image }}" \
             -var="image_user=${{ env.user_image }}" \
@@ -89,6 +91,7 @@ jobs:
         if: github.event.inputs.action == 'destroy'
         run: |
           terraform destroy \
+            -var="image_main=${{ env.main_image }}" \
             -var="image_auth=${{ env.auth_image }}" \
             -var="image_product=${{ env.product_image }}" \
             -var="image_user=${{ env.user_image }}" \
