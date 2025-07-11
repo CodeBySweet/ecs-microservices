@@ -67,6 +67,10 @@ def home():
         user_status=user_status
     )
 
+@app.route('/product/products')
+def get_products():
+    return jsonify(products)
+
 @app.route('/product/health')
 def health():
     return "ok", 200
