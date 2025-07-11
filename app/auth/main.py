@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template_string
+import requests
 
 app = Flask(__name__)
 
@@ -38,13 +39,29 @@ def auth_root():
         </table>
 
         <div class="nav-buttons">
-            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/product" class="btn">➡️ Go to Product</a>
-            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/user" class="btn">➡️ Go to User</a>
+            <a href="/get-product" class="btn">➡️ Get Product Info</a>
+            <a href="/get-user" class="btn">➡️ Get User Info</a>
         </div>
     </body>
     </html>
     """
     return render_template_string(TEMPLATE, tokens=TOKENS)
+
+@app.route('/get-product')
+def get_product():
+    try:
+        response = requests.get("http://product.my-namespace.local:3001/product", timeout=3)
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get-user')
+def get_user():
+    try:
+        response = requests.get("http://user.my-namespace.local:3002/user", timeout=3)
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/auth/health')
 def health():

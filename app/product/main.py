@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template_string
+import requests
 
 app = Flask(__name__)
 
@@ -10,6 +11,16 @@ products = [
 
 @app.route('/product')
 def home():
+    try:
+        auth_status = requests.get("http://auth.my-namespace.local:3003/auth/health", timeout=2).text
+    except Exception as e:
+        auth_status = f"Unavailable ({e})"
+
+    try:
+        user_status = requests.get("http://user.my-namespace.local:3002/user/health", timeout=2).text
+    except Exception as e:
+        user_status = f"Unavailable ({e})"
+
     TEMPLATE = """
     <!DOCTYPE html>
     <html>
@@ -24,6 +35,8 @@ def home():
             .nav-buttons { margin-top: 2em; }
             .btn { padding: 10px 16px; margin: 5px; border: none; background: #007acc; color: white; border-radius: 5px; text-decoration: none; font-weight: bold; }
             .btn:hover { background: #005f99; }
+            .status { font-size: 0.9rem; margin-left: 0.5em; color: green; }
+            .error { color: red; }
         </style>
     </head>
     <body>
@@ -39,13 +52,16 @@ def home():
         </table>
 
         <div class="nav-buttons">
-            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/auth" class="btn">➡️ Go to Auth</a>
-            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/user" class="btn">➡️ Go to User</a>
+            <a href="http://auth.my-namespace.local:3003/auth" class="btn">➡️ Go to Auth</a>
+            <span class="status {% if 'ok' not in auth_status %}error{% endif %}">{{ auth_status }}</span>
+
+            <a href="http://user.my-namespace.local:3002/user" class="btn">➡️ Go to User</a>
+            <span class="status {% if 'ok' not in user_status %}error{% endif %}">{{ user_status }}</span>
         </div>
     </body>
     </html>
     """
-    return render_template_string(TEMPLATE, products=products)
+    return render_template_string(TEMPLATE, products=products, auth_status=auth_status, user_status=user_status)
 
 @app.route('/product/products')
 def get_products():

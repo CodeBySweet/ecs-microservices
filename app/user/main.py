@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template_string
+import requests
 
 app = Flask(__name__)
 
@@ -9,6 +10,16 @@ users = [
 
 @app.route('/user')
 def home():
+    try:
+        auth_status = requests.get("http://auth.my-namespace.local:3003/auth/health", timeout=2).text
+    except Exception as e:
+        auth_status = f"Unavailable ({e})"
+
+    try:
+        product_status = requests.get("http://product.my-namespace.local:3001/product/health", timeout=2).text
+    except Exception as e:
+        product_status = f"Unavailable ({e})"
+
     TEMPLATE = """
     <!DOCTYPE html>
     <html>
@@ -23,6 +34,8 @@ def home():
             .nav-buttons { margin-top: 2em; }
             .btn { padding: 10px 16px; margin: 5px; border: none; background: #007acc; color: white; border-radius: 5px; text-decoration: none; font-weight: bold; }
             .btn:hover { background: #005f99; }
+            .status { font-size: 0.9rem; margin-left: 0.5em; color: green; }
+            .error { color: red; }
         </style>
     </head>
     <body>
@@ -38,16 +51,19 @@ def home():
         </table>
 
         <div class="nav-buttons">
-            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/auth" class="btn">➡️ Go to Auth</a>
-            <a href="http://my-app-alb-712428745.us-east-1.elb.amazonaws.com/product" class="btn">➡️ Go to Product</a>
+            <a href="http://auth.my-namespace.local:3003/auth" class="btn">➡️ Go to Auth</a>
+            <span class="status {% if 'ok' not in auth_status %}error{% endif %}">{{ auth_status }}</span>
+
+            <a href="http://product.my-namespace.local:3001/product" class="btn">➡️ Go to Product</a>
+            <span class="status {% if 'ok' not in product_status %}error{% endif %}">{{ product_status }}</span>
         </div>
     </body>
     </html>
     """
-    return render_template_string(TEMPLATE, users=users)
+    return render_template_string(TEMPLATE, users=users, auth_status=auth_status, product_status=product_status)
 
 @app.route('/user/products')
-def get_products():
+def get_users():
     return jsonify(users)
 
 @app.route('/user/health')
