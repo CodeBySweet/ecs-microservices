@@ -10,9 +10,8 @@ TOKENS = [
 
 @app.route('/auth')
 def auth_root():
-    # Simulate API calls to user and product services
     try:
-        user_response = requests.get("http://user.my-namespace.local:3002/user", timeout=3)
+        user_response = requests.get("http://user.my-namespace.local:3002/user/data", timeout=3)
         user_data = user_response.json()
         user_status = "Success"
     except Exception as e:
@@ -20,7 +19,7 @@ def auth_root():
         user_status = "Failed"
 
     try:
-        product_response = requests.get("http://product.my-namespace.local:3001/product", timeout=3)
+        product_response = requests.get("http://product.my-namespace.local:3001/product/products", timeout=3)
         product_data = product_response.json()
         product_status = "Success"
     except Exception as e:

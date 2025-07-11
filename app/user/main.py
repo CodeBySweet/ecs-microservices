@@ -10,7 +10,6 @@ users = [
 
 @app.route('/user')
 def home():
-    # Simulate calling Auth Service
     try:
         auth_resp = requests.get("http://auth.my-namespace.local:3003/login", timeout=3)
         token = auth_resp.json().get("token")
@@ -18,10 +17,8 @@ def home():
     except Exception as e:
         token = {"error": str(e)}
         auth_status = "Failed"
-
-    # Simulate calling Product Service
     try:
-        product_resp = requests.get("http://product.my-namespace.local:3001/product", timeout=3)
+        product_resp = requests.get("http://product.my-namespace.local:3001/product/products", timeout=3)
         product_data = product_resp.json()
         product_status = "Success"
     except Exception as e:

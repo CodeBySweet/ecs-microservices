@@ -12,7 +12,6 @@ products = [
 @app.route('/product')
 def home():
     try:
-        # Simulate token validation by calling Auth Service
         auth_resp = requests.get("http://auth.my-namespace.local:3003/login", timeout=3)
         token = auth_resp.json().get("token")
         auth_status = "Success"
@@ -21,8 +20,7 @@ def home():
         auth_status = "Failed"
 
     try:
-        # Simulate fetching user preferences from User Service
-        user_resp = requests.get("http://user.my-namespace.local:3002/user", timeout=3)
+        user_resp = requests.get("http://user.my-namespace.local:3002/user/data", timeout=3)
         user_data = user_resp.json()
         user_status = "Success"
     except Exception as e:
@@ -54,9 +52,6 @@ def home():
                 <tr><td>{{ p.id }}</td><td>{{ p.name }}</td></tr>
             {% endfor %}
         </table>
-
-        <h2>🔐 Called Auth Service - {{ auth_status }}</h2>
-        <pre>{{ token | tojson(indent=2) }}</pre>
 
         <h2>👤 Called User Service - {{ user_status }}</h2>
         <pre>{{ user_data | tojson(indent=2) }}</pre>
