@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, render_template_string
-import requests
 
 app = Flask(__name__)
 
@@ -8,62 +7,44 @@ TOKENS = [
     {"user": "bob@example.com", "token": "def456uvw"}
 ]
 
-@app.route('/')
 @app.route('/auth')
 def auth_root():
-    # Get external data
-    try:
-        product_data = requests.get("http://product.my-namespace.local:3001/product/products", timeout=3).json()
-    except Exception as e:
-        product_data = [{"error": str(e)}]
-
-    try:
-        user_data = requests.get("http://user.my-namespace.local:3002/user/products", timeout=3).json()
-    except Exception as e:
-        user_data = [{"error": str(e)}]
-
     TEMPLATE = """
     <!DOCTYPE html>
     <html>
     <head>
         <title>Auth Service</title>
         <style>
-            body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; font-size: 1.2rem; }
-            h1 { color: #333; }
-            table, th, td { border: 1px solid #aaa; border-collapse: collapse; padding: 8px; }
-            h2 { margin-top: 2em; }
+            body { font-family: Arial, sans-serif; padding: 2em; background: #f0f4f8; font-size: 1.2rem; color: #333; }
+            h1 { color: #007acc; }
+            table, th, td { border: 1px solid #ddd; border-collapse: collapse; padding: 8px; }
+            table { background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+            th { background-color: #f7f7f7; }
+            .nav-buttons { margin-top: 2em; }
+            .btn { padding: 10px 16px; margin: 5px; border: none; background: #007acc; color: white; border-radius: 5px; text-decoration: none; font-weight: bold; }
+            .btn:hover { background: #005f99; }
         </style>
     </head>
     <body>
-        <h1>Auth Service</h1>
-        <p><strong>Status:</strong> Auth Service running!</p>
+        <h1>🔐 Auth Service</h1>
+        <p><strong>Status:</strong> Auth Service is running independently.</p>
 
         <h2>Tokens</h2>
         <table>
             <tr><th>User</th><th>Token</th></tr>
-            {% for t in tokens %}<tr><td>{{ t.user }}</td><td>{{ t.token }}</td></tr>{% endfor %}
-        </table>
-
-        <h2>Fetched Product Data from Product Service</h2>
-        <table>
-            <tr><th>ID</th><th>Name</th></tr>
-            {% for p in product_data %}
-                <tr><td>{{ p.get('id', '-') }}</td><td>{{ p.get('name', p.get('error', '-')) }}</td></tr>
+            {% for t in tokens %}
+                <tr><td>{{ t.user }}</td><td>{{ t.token }}</td></tr>
             {% endfor %}
         </table>
 
-        <h2>Fetched User Data from User Service</h2>
-        <table>
-            <tr><th>ID</th><th>Name</th></tr>
-            {% for u in user_data %}
-                <tr><td>{{ u.get('id', '-') }}</td><td>{{ u.get('name', u.get('error', '-')) }}</td></tr>
-            {% endfor %}
-        </table>
+        <div class="nav-buttons">
+            <a href="http://product.my-namespace.local:3001/product" class="btn">➡️ Go to Product</a>
+            <a href="http://user.my-namespace.local:3002/user" class="btn">➡️ Go to User</a>
+        </div>
     </body>
     </html>
     """
-
-    return render_template_string(TEMPLATE, tokens=TOKENS, product_data=product_data, user_data=user_data)
+    return render_template_string(TEMPLATE, tokens=TOKENS)
 
 @app.route('/auth/health')
 def health():

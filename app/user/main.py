@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, render_template_string
-import requests
 
 app = Flask(__name__)
 
@@ -8,35 +7,29 @@ users = [
     {"id": 2, "name": "Bob"}
 ]
 
-@app.route('/')
 @app.route('/user')
 def home():
-    try:
-        auth_data = requests.get("http://auth.my-namespace.local:3003/login", timeout=3).json()
-    except Exception as e:
-        auth_data = {"error": str(e)}
-
-    try:
-        product_data = requests.get("http://product.my-namespace.local:3001/product/products", timeout=3).json()
-    except Exception as e:
-        product_data = [{"error": str(e)}]
-
     TEMPLATE = """
     <!DOCTYPE html>
     <html>
     <head>
         <title>User Service</title>
         <style>
-            body { font-family: Arial, sans-serif; padding: 2em; background: #f5f5f5; font-size: 1.2rem; }
-            h1 { color: #2a2a2a; }
-            table, th, td { border: 1px solid #aaa; border-collapse: collapse; padding: 8px; }
-            h2 { margin-top: 2em; }
+            body { font-family: Arial, sans-serif; padding: 2em; background: #f0f4f8; font-size: 1.2rem; color: #333; }
+            h1 { color: #007acc; }
+            table, th, td { border: 1px solid #ddd; border-collapse: collapse; padding: 8px; }
+            table { background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+            th { background-color: #f7f7f7; }
+            .nav-buttons { margin-top: 2em; }
+            .btn { padding: 10px 16px; margin: 5px; border: none; background: #007acc; color: white; border-radius: 5px; text-decoration: none; font-weight: bold; }
+            .btn:hover { background: #005f99; }
         </style>
     </head>
     <body>
-        <h1>User Service</h1>
+        <h1>👤 User Service</h1>
+        <p><strong>Status:</strong> User service is running independently.</p>
 
-        <h2>Users List</h2>
+        <h2>User List</h2>
         <table>
             <tr><th>ID</th><th>Name</th></tr>
             {% for u in users %}
@@ -44,24 +37,14 @@ def home():
             {% endfor %}
         </table>
 
-        <h2>Fetched Token from Auth Service</h2>
-        <table>
-            <tr><th>Token</th></tr>
-            <tr><td>{{ auth_data.get('token', auth_data.get('error', 'N/A')) }}</td></tr>
-        </table>
-
-        <h2>Fetched Product Data from Product Service</h2>
-        <table>
-            <tr><th>ID</th><th>Name</th></tr>
-            {% for p in product_data %}
-                <tr><td>{{ p.get('id', '-') }}</td><td>{{ p.get('name', p.get('error', '-')) }}</td></tr>
-            {% endfor %}
-        </table>
+        <div class="nav-buttons">
+            <a href="http://auth.my-namespace.local:3003/auth" class="btn">➡️ Go to Auth</a>
+            <a href="http://product.my-namespace.local:3001/product" class="btn">➡️ Go to Product</a>
+        </div>
     </body>
     </html>
     """
-
-    return render_template_string(TEMPLATE, users=users, auth_data=auth_data, product_data=product_data)
+    return render_template_string(TEMPLATE, users=users)
 
 @app.route('/user/products')
 def get_products():
