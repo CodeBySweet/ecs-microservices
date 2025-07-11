@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template_string, request
+from flask import Flask, jsonify, render_template_string
 import requests
 
 app = Flask(__name__)
@@ -11,6 +11,24 @@ products = [
 
 @app.route('/product')
 def home():
+    try:
+        # Simulate token validation by calling Auth Service
+        auth_resp = requests.get("http://auth.my-namespace.local:3003/login", timeout=3)
+        token = auth_resp.json().get("token")
+        auth_status = "Success"
+    except Exception as e:
+        token = {"error": str(e)}
+        auth_status = "Failed"
+
+    try:
+        # Simulate fetching user preferences from User Service
+        user_resp = requests.get("http://user.my-namespace.local:3002/user", timeout=3)
+        user_data = user_resp.json()
+        user_status = "Success"
+    except Exception as e:
+        user_data = {"error": str(e)}
+        user_status = "Failed"
+
     TEMPLATE = """
     <!DOCTYPE html>
     <html>
@@ -22,42 +40,37 @@ def home():
             table, th, td { border: 1px solid #ddd; border-collapse: collapse; padding: 8px; }
             table { background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
             th { background-color: #f7f7f7; }
-            .nav-buttons { margin-top: 2em; }
-            .btn { padding: 10px 16px; margin: 5px; border: none; background: #007acc; color: white; border-radius: 5px; text-decoration: none; font-weight: bold; }
-            .btn:hover { background: #005f99; }
+            pre { background: #eef; padding: 10px; border-radius: 5px; overflow-x: auto; }
         </style>
     </head>
     <body>
-        <h1>🛍️ Product Service</h1>
-        <p><strong>Status:</strong> Product service is running independently.</p>
+        <h1>🛍 Product Service</h1>
+        <p><strong>Status:</strong> Running and calling other services...</p>
 
-        <div class="nav-buttons">
-            <a href="/fetch-with-auth" class="btn">🔐 Get Products with Token Validation</a>
-        </div>
+        <h2>📦 Product List</h2>
+        <table>
+            <tr><th>ID</th><th>Name</th></tr>
+            {% for p in products %}
+                <tr><td>{{ p.id }}</td><td>{{ p.name }}</td></tr>
+            {% endfor %}
+        </table>
+
+        <h2>🔐 Called Auth Service - {{ auth_status }}</h2>
+        <pre>{{ token | tojson(indent=2) }}</pre>
+
+        <h2>👤 Called User Service - {{ user_status }}</h2>
+        <pre>{{ user_data | tojson(indent=2) }}</pre>
     </body>
     </html>
     """
-    return render_template_string(TEMPLATE)
-
-@app.route('/fetch-with-auth')
-def fetch_with_auth():
-    try:
-        # Simulate token validation by calling auth
-        auth_resp = requests.get("http://auth.my-namespace.local:3003/login", timeout=3)
-        token = auth_resp.json().get("token")
-
-        # Call user service to simulate user context
-        user_resp = requests.get("http://user.my-namespace.local:3002/user", timeout=3)
-        users = user_resp.json()
-
-        return jsonify({
-            "validated_token": token,
-            "products": products,
-            "user_context": users
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return render_template_string(
+        TEMPLATE,
+        products=products,
+        token=token,
+        user_data=user_data,
+        auth_status=auth_status,
+        user_status=user_status
+    )
 
 @app.route('/product/health')
 def health():

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, render_template_string, request
 import requests
 
 app = Flask(__name__)
@@ -10,15 +10,23 @@ users = [
 
 @app.route('/user')
 def home():
+    # Simulate calling Auth Service
     try:
-        auth_status = requests.get("http://auth.my-namespace.local:3003/auth/health", timeout=2).text
+        auth_resp = requests.get("http://auth.my-namespace.local:3003/login", timeout=3)
+        token = auth_resp.json().get("token")
+        auth_status = "Success"
     except Exception as e:
-        auth_status = f"Unavailable ({e})"
+        token = {"error": str(e)}
+        auth_status = "Failed"
 
+    # Simulate calling Product Service
     try:
-        product_status = requests.get("http://product.my-namespace.local:3001/product/health", timeout=2).text
+        product_resp = requests.get("http://product.my-namespace.local:3001/product", timeout=3)
+        product_data = product_resp.json()
+        product_status = "Success"
     except Exception as e:
-        product_status = f"Unavailable ({e})"
+        product_data = {"error": str(e)}
+        product_status = "Failed"
 
     TEMPLATE = """
     <!DOCTYPE html>
@@ -31,16 +39,12 @@ def home():
             table, th, td { border: 1px solid #ddd; border-collapse: collapse; padding: 8px; }
             table { background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
             th { background-color: #f7f7f7; }
-            .nav-buttons { margin-top: 2em; }
-            .btn { padding: 10px 16px; margin: 5px; border: none; background: #007acc; color: white; border-radius: 5px; text-decoration: none; font-weight: bold; }
-            .btn:hover { background: #005f99; }
-            .status { font-size: 0.9rem; margin-left: 0.5em; color: green; }
-            .error { color: red; }
+            pre { background: #eef; padding: 10px; border-radius: 5px; overflow-x: auto; }
         </style>
     </head>
     <body>
         <h1>👤 User Service</h1>
-        <p><strong>Status:</strong> User service is running independently.</p>
+        <p><strong>Status:</strong> Running and calling other services...</p>
 
         <h2>User List</h2>
         <table>
@@ -50,19 +54,24 @@ def home():
             {% endfor %}
         </table>
 
-        <div class="nav-buttons">
-            <a href="http://auth.my-namespace.local:3003/auth" class="btn">➡️ Go to Auth</a>
-            <span class="status {% if 'ok' not in auth_status %}error{% endif %}">{{ auth_status }}</span>
+        <h2>🔐 Called Auth Service - {{ auth_status }}</h2>
+        <pre>{{ token | tojson(indent=2) }}</pre>
 
-            <a href="http://product.my-namespace.local:3001/product" class="btn">➡️ Go to Product</a>
-            <span class="status {% if 'ok' not in product_status %}error{% endif %}">{{ product_status }}</span>
-        </div>
+        <h2>🛍 Called Product Service - {{ product_status }}</h2>
+        <pre>{{ product_data | tojson(indent=2) }}</pre>
     </body>
     </html>
     """
-    return render_template_string(TEMPLATE, users=users, auth_status=auth_status, product_status=product_status)
+    return render_template_string(
+        TEMPLATE,
+        users=users,
+        token=token,
+        product_data=product_data,
+        auth_status=auth_status,
+        product_status=product_status
+    )
 
-@app.route('/user')
+@app.route('/user/data')
 def get_users():
     return jsonify(users)
 
