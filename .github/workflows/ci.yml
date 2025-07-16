@@ -27,11 +27,11 @@ jobs:
     outputs:
       sha: ${{ steps.sha.outputs.short }}
     steps:
-      - name: Emit OTEL Span - Start Build
-        run: ./scripts/otel-span.sh "build-start" "OK"
-
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Emit OTEL Span - Start Build
+        run: ./scripts/otel-span.sh "build-start" "OK"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
