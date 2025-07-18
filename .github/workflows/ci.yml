@@ -16,8 +16,6 @@ env:
   ECR_REPO_NAME: "my-app-repo"
   ARTIFACT_BUCKET: "my-shared-artifacts-bucket"
 
-
-
 jobs:
   build-scan-push:
     runs-on: self-hosted
@@ -30,13 +28,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Emit OTEL Span - Start Build
-        run: |
-          if [ -x ./scripts/otel-span.sh ]; then
-            ./scripts/otel-span.sh "build-start" "OK"
-          else
-            echo "OTEL script not found or not executable"
-          fi
+      - name: Start Timer
+        id: timer
+        run: echo "START_TS=$(date +%s)" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -94,6 +88,18 @@ jobs:
           aws s3 cp image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt \
             s3://${{ env.ARTIFACT_BUCKET }}/image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt
 
+      - name: Emit Job Success Metric
+        run: |
+          STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
+          ./scripts/emit-metrics.sh "ci_job_success" "$STATUS" "${{ matrix.service }}" "build-scan-push"
+
+      - name: Emit CI/CD Job Duration Metric
+        if: always()
+        run: |
+          END=$(date +%s)
+          DURATION=$((END - START_TS))
+          ./scripts/emit-metrics.sh "ci_job_duration_seconds" "$DURATION" "${{ matrix.service }}" "build-scan-push"
+
   merge-artifacts:
     runs-on: self-hosted
     needs: build-scan-push
@@ -125,6 +131,8 @@ jobs:
         run: |
           aws s3 cp image-uris.txt s3://${{ env.ARTIFACT_BUCKET }}/image-uris-${{ steps.sha_out.outputs.short }}.txt
 
-      - name: Emit OTEL Span - End Build
-        if: always()
-        run: ./scripts/otel-span.sh "build-end" "${{ job.status == 'success' && 'OK' || 'ERROR' }}"
+      - name: Emit Job Success Metric
+        run: |
+          STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
+          ./scripts/emit-metrics.sh "ci_job_success" "$STATUS" "merge" "merge-artifacts"
+
