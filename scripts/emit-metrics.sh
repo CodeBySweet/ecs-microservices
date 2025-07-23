@@ -21,6 +21,10 @@ cat <<EOF | curl -s --data-binary @- http://localhost:4318/v1/metrics -H "Conten
         "gauge": {
           "dataPoints": [{
             "asDouble": $METRIC_VALUE
+            "attributes": [
+              { "key": "job", "value": { "stringValue": "$JOB_NAME" } },
+              { "key": "service", "value": { "stringValue": "$SERVICE" } }
+            ]
           }]
         }
       }]
