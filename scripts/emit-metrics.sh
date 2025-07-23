@@ -5,7 +5,7 @@ METRIC_VALUE="$2"
 SERVICE="$3"
 JOB_NAME="$4"
 
-cat <<EOF | curl -sS --data-binary @- http://localhost:4318/v1/metrics -H "Content-Type: application/json"
+cat <<EOF | curl -sS --data-binary @- http://host.docker.internal:4318/v1/metrics -H "Content-Type: application/json"
 {
   "resourceMetrics": [{
     "resource": {

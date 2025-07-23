@@ -33,7 +33,7 @@ cat <<EOF > temp-span.json
 EOF
 
 # Send span to OpenTelemetry Collector on localhost
-curl -s -X POST http://localhost:4318/v1/traces \
+curl -s -X POST http://host.docker.internal:4318/v1/traces \
   -H "Content-Type: application/json" \
   --data-binary @temp-span.json
 
