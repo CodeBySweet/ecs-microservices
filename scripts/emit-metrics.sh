@@ -5,7 +5,7 @@ METRIC_VALUE="$2"
 SERVICE="$3"
 JOB_NAME="$4"
 
-cat <<EOF | curl -s --data-binary @- http://localhost:4318/v1/metrics -H "Content-Type: application/json"
+cat <<EOF | curl -sS --data-binary @- http://localhost:4318/v1/metrics -H "Content-Type: application/json"
 {
   "resourceMetrics": [{
     "resource": {
@@ -20,7 +20,7 @@ cat <<EOF | curl -s --data-binary @- http://localhost:4318/v1/metrics -H "Conten
         "type": "gauge",
         "gauge": {
           "dataPoints": [{
-            "asDouble": $METRIC_VALUE
+            "asDouble": $METRIC_VALUE,
             "attributes": [
               { "key": "job", "value": { "stringValue": "$JOB_NAME" } },
               { "key": "service", "value": { "stringValue": "$SERVICE" } }
