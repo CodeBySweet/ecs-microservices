@@ -1,9 +1,18 @@
 #!/bin/bash
 
-JOB_NAME="$1"   # e.g., "ci"
-SUCCESS="$2"    # 1 for success, 0 for failure
-DURATION="$3"   # in seconds
-STEP="$4"       # e.g., "build", "scan", "deploy"
+METRIC_NAME="$1"   # e.g., "ci_job_success" or "cd_apply_success"
+VALUE="$2"         # 1 or 0 for success, or duration in seconds
+SERVICE="$3"       # e.g., "all", "auth", etc.
+STEP="$4"          # e.g., "build", "apply", "destroy", etc.
+
+# Determine unit and type from metric name
+if [[ "$METRIC_NAME" == *"duration"* ]]; then
+  UNIT="s"
+  TYPE="histogram"
+else
+  UNIT="1"
+  TYPE="sum"
+fi
 
 # Generate metric in OpenTelemetry JSON format
 cat <<EOF > temp-metric.json
@@ -17,36 +26,23 @@ cat <<EOF > temp-metric.json
     "scopeMetrics": [{
       "metrics": [
         {
-          "name": "ci_job_success",
-          "description": "GitHub Actions job success status",
-          "unit": "1",
-          "sum": {
+          "name": "$METRIC_NAME",
+          "description": "GitHub Actions metric: $METRIC_NAME",
+          "unit": "$UNIT",
+          "$TYPE": {
             "dataPoints": [
               {
                 "attributes": [
-                  { "key": "job_name", "value": { "stringValue": "$JOB_NAME" } },
-                  { "key": "step", "value": { "stringValue": "$STEP" } }
+                  { "key": "job_name", "value": { "stringValue": "$SERVICE" } },
+                  { "key": "step", "value": { "stringValue": "$STEP" } },
+                  { "key": "service", "value": { "stringValue": "$SERVICE" } }
                 ],
-                "value": $SUCCESS,
-                "timeUnixNano": $(date +%s%N)
-              }
-            ],
-            "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE"
-          }
-        },
-        {
-          "name": "ci_job_duration_seconds",
-          "description": "GitHub Actions job duration in seconds",
-          "unit": "s",
-          "histogram": {
-            "dataPoints": [
-              {
-                "attributes": [
-                  { "key": "job_name", "value": { "stringValue": "$JOB_NAME" } },
-                  { "key": "step", "value": { "stringValue": "$STEP" } }
-                ],
-                "bucketCounts": [0, 1],
-                "explicitBounds": [$DURATION],
+                $(if [[ "$TYPE" == "sum" ]]; then
+                    echo "\"value\": $VALUE,"
+                  else
+                    echo "\"bucketCounts\": [0, 1],"
+                    echo "\"explicitBounds\": [$VALUE],"
+                  fi)
                 "timeUnixNano": $(date +%s%N)
               }
             ],
@@ -59,7 +55,7 @@ cat <<EOF > temp-metric.json
 }
 EOF
 
-# Send metric to OpenTelemetry Collector
+# Send to OpenTelemetry Collector
 curl -s -X POST http://localhost:4318/v1/metrics \
   -H "Content-Type: application/json" \
   --data-binary @temp-metric.json
