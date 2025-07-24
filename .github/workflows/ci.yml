@@ -56,6 +56,16 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
 
+      - name: Emit Build Duration
+        if: always()
+        run: |
+          END=$(date +%s)
+          DURATION=$((END - START_TS))
+          ./scripts/emit-metrics.sh "build" 1 "$DURATION"
+
+      - name: Reset Timer Before Scan
+        run: echo "START_TS=$(date +%s)" >> $GITHUB_ENV
+
       - name: Install Trivy
         run: |
           mkdir -p ./bin
@@ -79,6 +89,16 @@ jobs:
         if: always()
         run: ./scripts/otel-span.sh "trivy-end" "${{ job.status == 'success' && 'OK' || 'ERROR' }}"
 
+      - name: Emit Scan Duration
+        if: always()
+        run: |
+          END=$(date +%s)
+          DURATION=$((END - START_TS))
+          ./scripts/emit-metrics.sh "scan" 1 "$DURATION"
+
+      - name: Reset Timer Before Push
+        run: echo "START_TS=$(date +%s)" >> $GITHUB_ENV
+
       - name: Push Docker image
         run: |
           docker push ${{ steps.build.outputs.image }}
@@ -87,6 +107,13 @@ jobs:
         run: |
           aws s3 cp image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt \
             s3://${{ env.ARTIFACT_BUCKET }}/image-uri-${{ matrix.service }}-${{ steps.sha.outputs.short }}.txt
+
+      - name: Emit Push Duration
+        if: always()
+        run: |
+          END=$(date +%s)
+          DURATION=$((END - START_TS))
+          ./scripts/emit-metrics.sh "push" 1 "$DURATION"
 
       - name: Emit Job Success Metric
         run: |

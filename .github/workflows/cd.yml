@@ -84,6 +84,11 @@ jobs:
             esac
           done < image-uris.txt
 
+      # ====== APPLY STEPS ======
+      - name: Reset Timer for Apply
+        if: github.event.inputs.action == 'deploy'
+        run: echo "START_APPLY=$(date +%s)" >> $GITHUB_ENV
+
       - name: Emit OTEL Span - Terraform Apply Start
         if: github.event.inputs.action == 'deploy'
         run: ./scripts/otel-span.sh "terraform-apply-start" "OK"
@@ -103,6 +108,18 @@ jobs:
       - name: Emit OTEL Span - Terraform Apply End
         if: always()
         run: ./scripts/otel-span.sh "terraform-apply-end" "${{ job.status == 'success' && 'OK' || 'ERROR' }}"
+
+      - name: Emit Apply Duration
+        if: github.event.inputs.action == 'deploy' && always()
+        run: |
+          END=$(date +%s)
+          DURATION=$((END - START_APPLY))
+          ./scripts/emit-metrics.sh "cd" 1 "$DURATION" "apply"
+
+      # ====== DESTROY STEPS ======
+      - name: Reset Timer for Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: echo "START_DESTROY=$(date +%s)" >> $GITHUB_ENV
 
       - name: Emit OTEL Span - Terraform Destroy Start
         if: github.event.inputs.action == 'destroy'
@@ -124,6 +141,14 @@ jobs:
         if: always()
         run: ./scripts/otel-span.sh "terraform-destroy-end" "${{ job.status == 'success' && 'OK' || 'ERROR' }}"
 
+      - name: Emit Destroy Duration
+        if: github.event.inputs.action == 'destroy' && always()
+        run: |
+          END=$(date +%s)
+          DURATION=$((END - START_DESTROY))
+          ./scripts/emit-metrics.sh "cd" 1 "$DURATION" "destroy"
+
+      # ====== FINAL JOB METRICS ======
       - name: Emit CD Job Success Metric
         run: |
           STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)

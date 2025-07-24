@@ -1,8 +1,9 @@
 #!/bin/bash
 
-JOB_NAME="$1"
-SUCCESS="$2"  # 1 for success, 0 for failure
-DURATION="$3"  # Duration in seconds
+JOB_NAME="$1"   # e.g., "ci"
+SUCCESS="$2"    # 1 for success, 0 for failure
+DURATION="$3"   # in seconds
+STEP="$4"       # e.g., "build", "scan", "deploy"
 
 # Generate metric in OpenTelemetry JSON format
 cat <<EOF > temp-metric.json
@@ -23,7 +24,8 @@ cat <<EOF > temp-metric.json
             "dataPoints": [
               {
                 "attributes": [
-                  { "key": "job_name", "value": { "stringValue": "$JOB_NAME" } }
+                  { "key": "job_name", "value": { "stringValue": "$JOB_NAME" } },
+                  { "key": "step", "value": { "stringValue": "$STEP" } }
                 ],
                 "value": $SUCCESS,
                 "timeUnixNano": $(date +%s%N)
@@ -40,7 +42,8 @@ cat <<EOF > temp-metric.json
             "dataPoints": [
               {
                 "attributes": [
-                  { "key": "job_name", "value": { "stringValue": "$JOB_NAME" } }
+                  { "key": "job_name", "value": { "stringValue": "$JOB_NAME" } },
+                  { "key": "step", "value": { "stringValue": "$STEP" } }
                 ],
                 "bucketCounts": [0, 1],
                 "explicitBounds": [$DURATION],
