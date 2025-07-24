@@ -25,13 +25,16 @@ jobs:
   deploy:
     runs-on: self-hosted
     needs: call-ci
-    defaults:
-      run:
-        working-directory: terraform
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Verify script exists
+        run: ls -l ./scripts
+
+      - name: Make scripts executable
+        run: chmod +x ./scripts/*.sh
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -50,7 +53,7 @@ jobs:
 
       - name: Generate backend.tf
         run: |
-          cat <<EOF > backend.tf
+          cat <<EOF > terraform/backend.tf
           terraform {
             backend "s3" {
               bucket = "ecs-deploy-app-shirin"
@@ -63,6 +66,7 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -reconfigure
+        working-directory: terraform
 
       - name: Download image URIs from S3
         run: |
@@ -94,6 +98,7 @@ jobs:
             -var="image_user=${{ env.user_image }}" \
             -var-file="app.tfvars" \
             -auto-approve
+        working-directory: terraform
 
       - name: Emit OTEL Span - Terraform Apply End
         if: always()
@@ -113,6 +118,7 @@ jobs:
             -var="image_user=${{ env.user_image }}" \
             -var-file="app.tfvars" \
             -auto-approve
+        working-directory: terraform
 
       - name: Emit OTEL Span - Terraform Destroy End
         if: always()
@@ -129,4 +135,3 @@ jobs:
           END=$(date +%s)
           DURATION=$((END - START_TS))
           ./scripts/emit-metrics.sh "cd_job_duration_seconds" "$DURATION" "all" "application-deploy"
-
