@@ -39,6 +39,10 @@ jobs:
           role-to-assume: ${{ secrets.OIDC_ARN }}
           aws-region: "us-east-1"
 
+      - name: Start Timer
+        id: start-timer
+        run: echo "START_TS=$(date +%s)" >> $GITHUB_ENV
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -76,6 +80,10 @@ jobs:
             esac
           done < image-uris.txt
 
+      - name: Emit OTEL Span - Terraform Apply Start
+        if: github.event.inputs.action == 'deploy'
+        run: ./scripts/otel-span.sh "terraform-apply-start" "OK"
+
       - name: Terraform Apply
         if: github.event.inputs.action == 'deploy'
         run: |
@@ -87,6 +95,14 @@ jobs:
             -var-file="app.tfvars" \
             -auto-approve
 
+      - name: Emit OTEL Span - Terraform Apply End
+        if: always()
+        run: ./scripts/otel-span.sh "terraform-apply-end" "${{ job.status == 'success' && 'OK' || 'ERROR' }}"
+
+      - name: Emit OTEL Span - Terraform Destroy Start
+        if: github.event.inputs.action == 'destroy'
+        run: ./scripts/otel-span.sh "terraform-destroy-start" "OK"
+
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
         run: |
@@ -97,3 +113,20 @@ jobs:
             -var="image_user=${{ env.user_image }}" \
             -var-file="app.tfvars" \
             -auto-approve
+
+      - name: Emit OTEL Span - Terraform Destroy End
+        if: always()
+        run: ./scripts/otel-span.sh "terraform-destroy-end" "${{ job.status == 'success' && 'OK' || 'ERROR' }}"
+
+      - name: Emit CD Job Success Metric
+        run: |
+          STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
+          ./scripts/emit-metrics.sh "cd_job_success" "$STATUS" "all" "application-deploy"
+
+      - name: Emit CD Job Duration Metric
+        if: always()
+        run: |
+          END=$(date +%s)
+          DURATION=$((END - START_TS))
+          ./scripts/emit-metrics.sh "cd_job_duration_seconds" "$DURATION" "all" "application-deploy"
+
