@@ -161,10 +161,12 @@ jobs:
           ./scripts/emit-metrics.sh "cd_destroy_success" "$STATUS" "all" "terraform-destroy"
 
       # ====== FINAL JOB METRICS ======
-      - name: Emit CD Job Success Metric
+      - name: Emit CD Job Success Metrics per Service
         run: |
           STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
-          ./scripts/emit-metrics.sh "cd_job_success" "$STATUS" "all" "application-deploy"
+          for svc in main auth product user; do
+            ./scripts/emit-metrics.sh "cd_job_success" "$STATUS" "$svc" "application-deploy"
+          done
 
       - name: Emit CD Job Duration Metric
         if: always()

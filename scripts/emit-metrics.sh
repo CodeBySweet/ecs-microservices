@@ -33,9 +33,9 @@ cat <<EOF > temp-metric.json
             "dataPoints": [
               {
                 "attributes": [
-                  { "key": "job_name", "value": { "stringValue": "$SERVICE" } },
-                  { "key": "step", "value": { "stringValue": "$STEP" } },
-                  { "key": "service", "value": { "stringValue": "$SERVICE" } }
+                  { "key": "job", "value": { "stringValue": "$JOB_NAME" } },
+                  { "key": "service", "value": { "stringValue": "$SERVICE" } },
+                  { "key": "step", "value": { "stringValue": "$STEP" } }
                 ],
                 $(if [[ "$TYPE" == "sum" ]]; then
                     echo "\"value\": $VALUE,"
