@@ -23,17 +23,19 @@ cat <<EOF > temp-span.json
     "scopeSpans": [{
       "spans": [{
         "name": "$SPAN_NAME",
+        "traceId": "$TRACE_ID",
+        "spanId": "$SPAN_ID",
         "startTimeUnixNano": $START_TIME,
         "endTimeUnixNano": $END_TIME,
-        "status": { "code": "$STATUS" }
+        "status": { "code": $STATUS }
       }]
     }]
   }]
 }
 EOF
 
-# Send span to OpenTelemetry Collector on localhost
-curl -s -X POST http://host.docker.internal:4318/v1/traces \
+# Send span to OpenTelemetry Collector
+curl -s -X POST http://localhost:4318/v1/traces \
   -H "Content-Type: application/json" \
   --data-binary @temp-span.json
 
