@@ -108,7 +108,7 @@ jobs:
           ./scripts/emit-metrics.sh "cd_duration_seconds" "$DURATION" "all" "apply"
 
       - name: Emit Apply Success Metric
-        if: github.event.inputs.action == 'deploy'
+        if: github.event.inputs.action == 'deploy' && always()
         run: |
           STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
           ./scripts/emit-metrics.sh "cd_apply_success" "$STATUS" "all" "terraform-apply"

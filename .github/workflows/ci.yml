@@ -154,6 +154,8 @@ jobs:
           aws s3 cp image-uris.txt s3://${{ env.ARTIFACT_BUCKET }}/image-uris-${{ steps.sha_out.outputs.short }}.txt
 
       - name: Emit Job Success Metric
+        if: always()
         run: |
           STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
           ./scripts/emit-metrics.sh "ci_job_success" "$STATUS" "merge" "merge-artifacts"
+
