@@ -1,9 +1,9 @@
 #!/bin/bash
 
-METRIC_NAME="$1"   # e.g., "ci_job_success" or "cd_apply_success"
-VALUE="$2"         # 1 or 0 for success, or duration in seconds
-SERVICE="$3"       # e.g., "all", "auth", etc.
-STEP="$4"          # e.g., "build", "apply", "destroy", etc.
+METRIC_NAME="$1"   # e.g., "ci_job_success", "build_duration_seconds"
+VALUE="$2"         # e.g., 1 or 0 for success, or duration in seconds
+SERVICE="$3"       # e.g., "main", "auth", "all"
+STEP="$4"          # e.g., "build", "scan", "push", "terraform-apply", etc.
 
 # Determine unit and type from metric name
 if [[ "$METRIC_NAME" == *"duration"* ]]; then

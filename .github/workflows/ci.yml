@@ -1,3 +1,5 @@
+# .github/workflows/ci.yml (Updated Metrics)
+
 name: ci
 
 on:
@@ -61,7 +63,7 @@ jobs:
         run: |
           END=$(date +%s)
           DURATION=$((END - START_TS))
-          ./scripts/emit-metrics.sh "build" 1 "$DURATION"
+          ./scripts/emit-metrics.sh "build_duration_seconds" "$DURATION" "${{ matrix.service }}" "build"
 
       - name: Reset Timer Before Scan
         run: echo "START_TS=$(date +%s)" >> $GITHUB_ENV
@@ -71,9 +73,6 @@ jobs:
           mkdir -p ./bin
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ./bin v0.49.1
           echo "$PWD/bin" >> $GITHUB_PATH
-
-      - name: Emit OTEL Span - Start Trivy
-        run: ./scripts/otel-span.sh "trivy-start" "OK"
 
       - name: Trivy scan (critical only)
         run: |
@@ -85,16 +84,12 @@ jobs:
             --timeout 5m \
             ${{ steps.build.outputs.image }}
 
-      - name: Emit OTEL Span - End Trivy
-        if: always()
-        run: ./scripts/otel-span.sh "trivy-end" "${{ job.status == 'success' && 'OK' || 'ERROR' }}"
-
       - name: Emit Scan Duration
         if: always()
         run: |
           END=$(date +%s)
           DURATION=$((END - START_TS))
-          ./scripts/emit-metrics.sh "scan" 1 "$DURATION"
+          ./scripts/emit-metrics.sh "scan_duration_seconds" "$DURATION" "${{ matrix.service }}" "scan"
 
       - name: Reset Timer Before Push
         run: echo "START_TS=$(date +%s)" >> $GITHUB_ENV
@@ -113,14 +108,14 @@ jobs:
         run: |
           END=$(date +%s)
           DURATION=$((END - START_TS))
-          ./scripts/emit-metrics.sh "push" 1 "$DURATION"
+          ./scripts/emit-metrics.sh "push_duration_seconds" "$DURATION" "${{ matrix.service }}" "push"
 
       - name: Emit Job Success Metric
         run: |
           STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
           ./scripts/emit-metrics.sh "ci_job_success" "$STATUS" "${{ matrix.service }}" "build-scan-push"
 
-      - name: Emit CI/CD Job Duration Metric
+      - name: Emit CI Job Duration
         if: always()
         run: |
           END=$(date +%s)
@@ -162,4 +157,3 @@ jobs:
         run: |
           STATUS=$([[ "${{ job.status }}" == "success" ]] && echo 1 || echo 0)
           ./scripts/emit-metrics.sh "ci_job_success" "$STATUS" "merge" "merge-artifacts"
-
