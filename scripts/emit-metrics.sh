@@ -9,15 +9,6 @@ PIPELINE_STAGE="$6"
 
 CURRENT_TIME=$(date +%s%N)
 
-# Set metric type based on name
-if [[ "$METRIC_NAME" == *"duration"* ]]; then
-  METRIC_TYPE="gauge"
-  UNIT="s"
-else
-  METRIC_TYPE="sum"
-  UNIT="1"
-fi
-
 cat <<EOF > temp-metric.json
 {
   "resourceMetrics": [{
@@ -33,10 +24,8 @@ cat <<EOF > temp-metric.json
       "metrics": [{
         "name": "$METRIC_NAME",
         "description": "GitHub Actions metric: $METRIC_NAME",
-        "unit": "$UNIT",
-        "$METRIC_TYPE": {
-          "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
-          "isMonotonic": false,
+        "unit": "s",
+        "gauge": {
           "dataPoints": [{
             "attributes": [
               { "key": "job", "value": { "stringValue": "$JOB_NAME" } },
@@ -44,7 +33,6 @@ cat <<EOF > temp-metric.json
               { "key": "pipeline_stage", "value": { "stringValue": "$PIPELINE_STAGE" } },
               { "key": "step", "value": { "stringValue": "$STEP" } }
             ],
-            "startTimeUnixNano": $CURRENT_TIME,
             "timeUnixNano": $CURRENT_TIME,
             "value": $VALUE
           }]
