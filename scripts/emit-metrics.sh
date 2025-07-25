@@ -1,10 +1,11 @@
 #!/bin/bash
 
-METRIC_NAME="$1"   # e.g., "ci_job_success", "build_duration_seconds"
-VALUE="$2"         # e.g., 1 or 0 for success, or duration in seconds
-SERVICE="$3"       # e.g., "main", "auth", "all"
-STEP="$4"          # e.g., "build", "scan", "push", "terraform-apply", etc.
-JOB_NAME="$5"   
+METRIC_NAME="$1"     # e.g., "ci_job_success", "build_duration_seconds"
+VALUE="$2"           # e.g., 1 or 0 for success, or duration in seconds
+SERVICE="$3"         # e.g., "main", "auth", "all"
+STEP="$4"            # e.g., "build", "scan", "push", "terraform-apply", etc.
+JOB_NAME="$5"
+PIPELINE_STAGE="$6"  # "ci" or "cd"   
 
 # Determine unit and type from metric name
 if [[ "$METRIC_NAME" == *"duration"* ]]; then
@@ -36,6 +37,7 @@ cat <<EOF > temp-metric.json
                 "attributes": [
                   { "key": "job", "value": { "stringValue": "$JOB_NAME" } },
                   { "key": "service", "value": { "stringValue": "$SERVICE" } },
+                  { "key": "pipeline_stage", "value": { "stringValue": "$PIPELINE_STAGE" } },
                   { "key": "step", "value": { "stringValue": "$STEP" } }
                 ],
                 $(if [[ "$TYPE" == "sum" ]]; then
