@@ -13,7 +13,7 @@ cat <<EOF > temp-metric.json
 {
   "resourceMetrics": [{
     "resource": {
-      "attributes": [
+      "attributes": [ 
         { "key": "origin", "value": { "stringValue": "github-actions" } }
       ]
     },
@@ -24,8 +24,10 @@ cat <<EOF > temp-metric.json
       "metrics": [{
         "name": "$METRIC_NAME",
         "description": "GitHub Actions metric: $METRIC_NAME",
-        "unit": "s",
-        "gauge": {
+        "unit": "1",
+        "sum": {
+          "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+          "isMonotonic": false,
           "dataPoints": [{
             "attributes": [
               { "key": "job", "value": { "stringValue": "$JOB_NAME" } },
@@ -33,8 +35,9 @@ cat <<EOF > temp-metric.json
               { "key": "pipeline_stage", "value": { "stringValue": "$PIPELINE_STAGE" } },
               { "key": "step", "value": { "stringValue": "$STEP" } }
             ],
+            "startTimeUnixNano": $CURRENT_TIME,
             "timeUnixNano": $CURRENT_TIME,
-            "value": $VALUE
+            "asDouble": $VALUE
           }]
         }
       }]
