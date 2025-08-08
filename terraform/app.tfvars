@@ -13,6 +13,6 @@ alb_tg                     = "arn:aws:elasticloadbalancing:us-east-1:62663542198
 region                     = "us-east-1"
 cluster_name               = "my-app-cluster"
 memory                     = 1024
-cpu                        = 512
+cpu                        = 
 alb_sg_name                = "my-app-alb-sg"
 alb_name                   = "my-app-alb"
